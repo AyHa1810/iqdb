@@ -31,8 +31,10 @@ using namespace iqdb;
 int main(int argc, char **argv) {
   try {
     // open_swap();
-    if (argc < 2)
-      help();
+    if (argc < 2) {
+      show_usage();
+      exit(1);
+    }
 
     if (!strncmp(argv[1], "-d=", 3)) {
       debug_level = std::stoi(argv[1] + 3, NULL, 0);
@@ -42,13 +44,14 @@ int main(int argc, char **argv) {
     }
 
     if (!strcasecmp(argv[1], "http")) {
-      const std::string host = argc >= 2 ? argv[2] : "localhost";
-      const int port = argc >= 3 ? std::stoi(argv[3]) : 8000;
-      const std::string filename = argc >= 4 ? argv[4] : "iqdb.db";
+      const std::string host = argc > 2 ? argv[2] : "localhost";
+      const int port = argc > 3 ? std::stoi(argv[3]) : 8000;
+      const std::string filename = argc > 4 ? argv[4] : "iqdb.db";
 
       http_server(host, port, filename);
     } else {
-      help();
+      show_usage();
+      exit(0);
     }
   } catch (const iqdb::base_error &err) {
     INFO("Error: {}.\n", err.what());

@@ -186,14 +186,17 @@ void http_server(const std::string host, const int port, const std::string datab
   INFO("Stopping server...\n");
 }
 
-void help() {
+void show_usage() {
   printf(
-    "Usage: iqdb COMMAND [ARGS...]\n"
-    "  iqdb http [host] [port] [dbfile]  Run HTTP server on given host/port.\n"
-    "  iqdb help                         Show this help.\n"
+    "Usage: iqdb [-d=N] COMMAND [ARGS...]\n"
+    "\n"
+    "  iqdb http [host] [port] [dbfile]   Run HTTP server on given host/port.\n"
+    "  iqdb help                          Show this help.\n"
+    "\n"
+    "Options:\n"
+    "  -d=N       The logging verbosity level, where N is any of the integers below:\n"
+    "             0 = DEBUG, 1 = ERROR, 2 = WARN, 3 = INFO\n"
   );
-
-  exit(0);
 }
 
 }
