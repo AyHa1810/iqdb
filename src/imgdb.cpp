@@ -76,6 +76,7 @@ void IQDB::addImageInMemory(imageId iqdb_id, imageId post_id, const HaarSignatur
     DEBUG("Growing m_info array (size={}).\n", m_info.size());
     m_info.resize(iqdb_id + 50000);
   }
+  m_info_size++;
 
   imgbuckets.add(haar, iqdb_id);
 
@@ -189,6 +190,7 @@ void IQDB::removeImage(imageId post_id) {
     WARN("Couldn't remove post #{}; post not in sqlite database.\n", post_id);
     return;
   }
+  m_info_size--;
 
   imgbuckets.remove(image->haar(), image->id);
   m_info.at(image->id).avgl.v[0] = 0;
@@ -198,7 +200,7 @@ void IQDB::removeImage(imageId post_id) {
 }
 
 size_t IQDB::getImgCount() {
-  return m_info.size();
+  return m_info_size;
 }
 
 IQDB::IQDB(std::string filename) : sqlite_db_(nullptr) {

@@ -103,6 +103,7 @@ private:
   void addImageInMemory(imageId iqdb_id, imageId post_id, const HaarSignature& signature);
 
   std::vector<image_info> m_info;
+  size_t m_info_size = 0;
   std::unique_ptr<SqliteDB> sqlite_db_;
   bucket_set imgbuckets;
 
