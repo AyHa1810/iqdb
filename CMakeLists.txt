@@ -78,5 +78,6 @@ find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GDLIB REQUIRED gdlib)
+find_library (EXECINFO_LIBRARY NAMES execinfo)
 
 add_subdirectory(src)

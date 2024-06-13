@@ -6,8 +6,8 @@
 
 namespace iqdb {
 
-void help();
 void http_server(const std::string host, const int port, const std::string database_filename);
+void show_usage();
 
 }
 

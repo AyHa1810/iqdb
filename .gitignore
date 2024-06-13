@@ -2,3 +2,6 @@ build/
 tmp/
 .clangd
 .vscode
+*.db
+*.sqlite
+*.sqlite3

@@ -15,10 +15,10 @@ thread_local std::string last_exception_backtrace;
 //
 // http://itanium-cxx-abi.github.io/cxx-abi/abi-eh.html#cxx-throw
 // https://stackoverflow.com/a/11674810
-extern "C" void __cxa_throw(void* exception, void* type_info, void (*destructor)(void*)) {
+extern "C" void __cxa_throw(void* exception, std::type_info* type_info, void (*destructor)(void*)) {
   last_exception_backtrace = get_backtrace(2);
 
-  decltype(__cxa_throw)* rethrow [[noreturn]] = (decltype(__cxa_throw)*)dlsym(RTLD_NEXT, "__cxa_throw");
+  decltype(__cxa_throw)* rethrow = (decltype(__cxa_throw)*)dlsym(RTLD_NEXT, "__cxa_throw");
   rethrow(exception, type_info, destructor);
 }
 

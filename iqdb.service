@@ -5,7 +5,7 @@ Description=IQDB
 Type=simple
 User=danbooru
 Restart=always
-ExecStart=/usr/local/bin/iqdb listen2 localhost:4000 -r /var/www/iqdbs/shared/data/iqdb.db
+ExecStart=/usr/local/bin/iqdb http localhost 5588 /var/www/iqdbs/shared/data/iqdb.db
 TimeoutStartSec=300
 
 [Install]
