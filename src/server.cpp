@@ -77,11 +77,55 @@ void http_server(const std::string host, const int port, const std::string datab
 
   install_signal_handlers();
 
+  // GET /images/:id
+  //    get the info about an image based on an image ID
+  //
+  server.Get("/images/(\\d+)", [&](const auto &request, auto &response) {
+    std::unique_lock lock(mutex_);
+
+    const postId post_id = std::stoi(request.matches[1]);
+    INFO("getting post_id {}\n", post_id);
+    auto image = memory_db->getImage(post_id);
+    auto haar = image->haar();
+
+    json data;
+    if (image == std::nullopt) {
+      response.status = 404;
+      data = {
+        { "error", {
+          { "code", response.status },
+          { "message", "Image not found" }
+        }}
+      };
+    } else {
+      response.status = 200;
+      data = {
+        { "post_id", post_id },
+        { "hash", haar.to_string() },
+        { "signature", {
+          { "avglf", haar.avglf },
+          { "sig", haar.sig }
+        }}
+      };
+    };
+
+    response.set_content(data.dump(4), "application/json");
+  });
+
   server.Post("/images/(\\d+)", [&](const auto &request, auto &response) {
     std::unique_lock lock(mutex_);
 
-    if (!request.has_file("file"))
+    if (!request.has_file("file")) {
+      response.status = 400;
+      json data = {
+          { "error", {
+            { "code", response.status },
+            { "message", "`POST /images/:id` requires a `file` param" }
+          }}
+      };
+      response.set_content(data.dump(4), "application/json");
       throw iqdb::param_error("`POST /images/:id` requires a `file` param");
+    };
 
     const postId post_id = std::stoi(request.matches[1]);
     const auto &file = request.get_file_value("file");
@@ -93,10 +137,11 @@ void http_server(const std::string host, const int port, const std::string datab
       { "hash", signature.to_string() },
       { "signature", {
         { "avglf", signature.avglf },
-        { "sig", signature.sig },
+        { "sig", signature.sig }
       }}
     };
 
+    response.status = 200;
     response.set_content(data.dump(4), "application/json");
   });
 
@@ -104,10 +149,23 @@ void http_server(const std::string host, const int port, const std::string datab
     std::unique_lock lock(mutex_);
 
     const postId post_id = std::stoi(request.matches[1]);
-    memory_db->removeImage(post_id);
+    int status = memory_db->removeImage(post_id);
 
-    json data = {
-      { "post_id", post_id },
+    json data;
+    if (status == 200) {
+        response.status = 200;
+        data = {
+          { "post_id", post_id }
+        };
+    } else if (status == 404) {
+        response.status = 404;
+        data = {
+          { "error", {
+            { "code", response.status },
+            { "message", "Post doesn't exists!" }
+          }},
+          { "post_id", post_id }
+        };
     };
 
     response.set_content(data.dump(4), "application/json");
@@ -131,6 +189,14 @@ void http_server(const std::string host, const int port, const std::string datab
       const auto &file = request.get_file_value("file");
       matches = memory_db->queryFromBlob(file.content, limit);
     } else {
+      response.status = 400;
+      json data = {
+        { "error", {
+          { "code", response.status },
+          { "message", "`POST /query` requires a `file` or `hash` param" }
+        }}
+      };
+      response.set_content(data.dump(4), "application/json");
       throw param_error("`POST /query` requires a `file` or `hash` param");
     }
 
@@ -149,6 +215,7 @@ void http_server(const std::string host, const int port, const std::string datab
       };
     }
 
+    response.status = 200;
     response.set_content(data.dump(4), "application/json");
   });
 
@@ -158,6 +225,7 @@ void http_server(const std::string host, const int port, const std::string datab
     const size_t count = memory_db->getImgCount();
     json data = {{"images", count}};
 
+    response.status = 200;
     response.set_content(data.dump(4), "application/json");
   });
 

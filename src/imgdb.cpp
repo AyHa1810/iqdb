@@ -184,11 +184,11 @@ sim_vector IQDB::queryFromSignature(const HaarSignature &signature, size_t numre
   return V;
 }
 
-void IQDB::removeImage(imageId post_id) {
+int IQDB::removeImage(imageId post_id) {
   auto image = sqlite_db_->getImage(post_id);
   if (image == std::nullopt) {
     WARN("Couldn't remove post #{}; post not in sqlite database.\n", post_id);
-    return;
+    return 404;
   }
   m_info_size--;
 
@@ -197,6 +197,7 @@ void IQDB::removeImage(imageId post_id) {
   sqlite_db_->removeImage(post_id);
 
   DEBUG("Removed post #{} from memory and database.\n", post_id);
+  return 200;
 }
 
 size_t IQDB::getImgCount() {

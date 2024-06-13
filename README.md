@@ -5,15 +5,27 @@
 IQDB is a reverse image search system. It lets you search a database of images
 to find images that are visually similar to a given image.
 
-This version of IQDB is a fork of the original IQDB used by https://iqdb.org.
-This version powers the reverse image search for [Danbooru](https://github.com/danbooru/danbooru).
+This version of IQDB is a fork of the Danbooru IQDB, which in turn is a fork of
+ the original IQDB used by https://iqdb.org.
 
 # Quickstart
 
+Launching IQDB server locally:
 ```bash
-# Run IQDB in Docker on port 5588. This will create a database file in the current directory called `iqdb.sqlite`.
-docker run --rm -it -p 5588:5588 -v $PWD:/mnt evazion/iqdb http 0.0.0.0 5588 /mnt/iqdb.sqlite
+iqdb 0.0.0.0 5588 iqdb.sqlite
+```
 
+Launching a Docker instance of IQDB server
+```bash
+# build the docker image
+docker build . -t $IMAGE_NAME
+
+# run IQDB in Docker on port 5588. This will create a database file in the current directory called `iqdb.sqlite`.
+docker run --rm -it -p 5588:5588 -v $PWD:/mnt $IMAGE_NAME http 0.0.0.0 5588 /mnt/iqdb.sqlite
+```
+
+Testing and accessing the server
+```bash
 # Test that IQDB is running
 curl -v http://localhost:5588/status
 
@@ -103,6 +115,30 @@ chosen when you added the image.
 You will have to determine a good cutoff score yourself. Generally, 90+ is a
 strong match, 70+ is weak match (possibly a false positive), and <50 is no
 match.
+
+
+#### Retrieving an image
+
+To retrieve an image, make GET request to `/images/:id`, where `:id` is the
+ID number of the image.
+
+```bash
+curl 'http://localhost:5588/images/1234'
+```
+
+```json
+[
+  {
+    "hash":"iqdb_3fe4c6d513c538413fadbc7235383ab23f97674a40909b92f27ff97af97df980fcfdfd00fd71fd77fd7efdfffe00fe7dfe7ffe80fee7fefeff00ff71ff7aff7fff80ffe7fff1fff4fffa00020008001d009d02830285028803020381038304850701078208000801f97df9fffb7afcfdfd77fe00fe7dfe80fefaff00ff7aff7ffffaffff00030007000e000f0010002000830087008e008f009000a0010c010e018202810283028502860290030203810383058306000b83f67afafdfb7ffcf7fcfefcfffd7dfef3fefafeffff7afffa00030007000e001000200080008400870088008e0090010001030107010e018001810183020d02810282029003030483048d0507050e0680",
+    "post_id":1234,
+    "signature":{
+      "avglf":[0.6492715250149176,0.05807835483220937,0.022854957762458],
+      "sig":[[-3457,-1670,-1667,-1664,-771,-768,-655,-649,-642,-513,-512,-387,-385,-384,-281,-258,-256,-143,-134,-129,-128,-25,-15,-12,-6,2,8,29,157,643,645,648,770,897,899,1157,1793,1922,2048,2049],[-1667,-1537,-1158,-771,-649,-512,-387,-384,-262,-256,-134,-129,-6,-1,3,7,14,15,16,32,131,135,142,143,144,160,268,270,386,641,643,645,646,656,770,897,899,1411,1536,2947],[-2438,-1283,-1153,-777,-770,-769,-643,-269,-262,-257,-134,-6,3,7,14,16,32,128,132,135,136,142,144,256,259,263,270,384,385,387,525,641,642,656,771,1155,1165,1287,1294,1664]]
+    }
+  }
+]
+```
+
 
 # Compiling
 

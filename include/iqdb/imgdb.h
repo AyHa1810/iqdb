@@ -96,7 +96,7 @@ public:
   // DB maintenance.
   void addImage(imageId id, const HaarSignature& signature);
   std::optional<Image> getImage(imageId post_id);
-  void removeImage(imageId id);
+  int removeImage(imageId id);
   void loadDatabase(std::string filename);
 
 private:
