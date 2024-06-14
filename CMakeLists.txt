@@ -22,7 +22,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # Compile httplib instead of using header-only version.
 # https://github.com/yhirose/cpp-httplib/blob/master/CMakeLists.txt
-set(HTTPLIB_COMPILE ON)
+set(HTTPLIB_COMPILE OFF)
 
 # Compile json library instead of using header-only version.
 # https://github.com/nlohmann/json/blob/develop/CMakeLists.txt#L35
@@ -30,11 +30,12 @@ set(HTTPLIB_COMPILE ON)
 set(JSON_MultipleHeaders ON)
 
 include(FetchContent)
+include(CheckIncludeFileCXX)
 
 FetchContent_Declare(
   httplib
   GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
-  GIT_TAG        v0.8.9
+  GIT_TAG        v0.14.1
 )
 
 FetchContent_Declare(
@@ -78,6 +79,12 @@ find_package(SQLite3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GDLIB REQUIRED gdlib)
-find_library (EXECINFO_LIBRARY NAMES execinfo)
+
+CHECK_INCLUDE_FILE_CXX("execinfo.h" HAVE_EXECINFO)
+IF(NOT HAVE_EXECINFO)
+  UNSET(HAVE_EXECINFO CACHE)
+  message( "execinfo.h not found, trying looking for execinfo library..." )
+  find_library (EXECINFO_LIBRARY NAMES execinfo)
+ENDIF()
 
 add_subdirectory(src)

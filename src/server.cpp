@@ -69,7 +69,7 @@ void install_signal_handlers() {
   sigaction(SIGSEGV, &action, NULL);
 }
 
-void http_server(const std::string host, const int port, const std::string database_filename) {
+void http_server(const std::string hostport, const std::string database_filename) {
   INFO("Starting server...\n");
 
   std::shared_mutex mutex_;
@@ -233,21 +233,40 @@ void http_server(const std::string host, const int port, const std::string datab
     INFO("{} \"{} {} {}\" {} {}\n", req.remote_addr, req.method, req.path, req.version, res.status, res.body.size());
   });
 
-  server.set_exception_handler([](const auto& req, auto& res, std::exception &e) {
-    const auto name = demangle_name(typeid(e).name());
-    const auto message = e.what();
+  server.set_exception_handler([](const auto& req, auto& res, std::exception_ptr ep) {
+    json data;
+        try {
+            std::rethrow_exception(ep);
+        } catch (std::exception& e) {
+            const auto name = demangle_name(typeid(e).name());
+            const auto message = e.what();
+            data = {
+                {"exception", name},
+                {"message", message},
+                {"backtrace", last_exception_backtrace}
+            };
 
-    json data = {
-      { "exception", name },
-      { "message", message },
-      { "backtrace", last_exception_backtrace }
-    };
-
-    DEBUG("Exception: {} ({})\n{}\n", name, message, last_exception_backtrace);
+            DEBUG("exception: {} ({})\n{}\n", name, message, last_exception_backtrace);
+        } catch (...) {
+            data = {
+                {"message", "uncaught rethrow"}
+            };
+        }
 
     res.set_content(data.dump(4), "application/json");
     res.status = 500;
   });
+
+  std::string host = hostport.substr(0, hostport.find(":"));
+  int port;
+  if (host == hostport) {
+    host = "localhost";
+    port = std::stoi(hostport);
+  } else {
+    std::string hostport_temp = hostport;
+    hostport_temp.erase(0, hostport_temp.find(":") + 1);
+    port = std::stoi(hostport_temp);
+  };
 
   INFO("Listening on {}:{}.\n", host, port);
   server.listen(host.c_str(), port);
@@ -258,7 +277,7 @@ void show_usage() {
   printf(
     "Usage: iqdb [-d=N] COMMAND [ARGS...]\n"
     "\n"
-    "  iqdb http [host] [port] [dbfile]   Run HTTP server on given host/port.\n"
+    "  iqdb listen [host:]port [dbfile]   Run HTTP server on given host/port.\n"
     "  iqdb help                          Show this help.\n"
     "\n"
     "Options:\n"

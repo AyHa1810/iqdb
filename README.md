@@ -1,5 +1,3 @@
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/from-referrer/)
-
 # IQDB: Image Query Database System
 
 IQDB is a reverse image search system. It lets you search a database of images
@@ -7,6 +5,8 @@ to find images that are visually similar to a given image.
 
 This version of IQDB is a fork of the Danbooru IQDB, which in turn is a fork of
  the original IQDB used by https://iqdb.org.
+
+notes: apt install php-gd
 
 # Quickstart
 

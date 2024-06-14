@@ -20,4 +20,4 @@ COPY --from=build /iqdb/build/release/src/iqdb /usr/local/bin/
 
 EXPOSE 5588
 ENTRYPOINT ["iqdb"]
-CMD ["http", "0.0.0.0", "5588", "iqdb.db"]
+CMD ["http", "0.0.0.0:5588", "iqdb.db"]
