@@ -41,9 +41,9 @@ function request_srv($line) {
 function parse_response($lines) {
 	$res = array("info" => array(), "values" => array(), "results" => array());
 
-	foreach (split("\n", $lines) as $line) {
+	foreach (preg_split("\n", $lines) as $line) {
 		#debug("got $line");
-		list($code,$rest) = split(" ", chop($line), 2);
+		list($code,$rest) = preg_split(" ", chop($line), 2);
 		#debug("code=$code rest=$rest");
 		switch($code) {
 			case 000: break;
@@ -105,7 +105,7 @@ function request_match($file, $querysrv, $options = array()) {
 			if ($query) $query.=' +';
 			$query.=" $db $rflags $numres";
 		}
-		$query = $res."${queryopt}multi_query$query $file\ndone now\n";
+		$query = $res."{$queryopt}multi_query$query $file\ndone now\n";
 		#debug("Doing multi query:\n$query");
 		$res = request_srv($query);
 		if ($res["results"]) $res["results"] = array_slice($res["results"], 0, $numres);
@@ -113,7 +113,7 @@ function request_match($file, $querysrv, $options = array()) {
 		$srv=$services[$services[$querysrv]];
 		$db = $srv["db"];
 		if ($srv["uniqueset"]) $flags |= 8;
-		$query = "count $db\n${queryopt}query $db $flags $numres $file\ndone now\n";
+		$query = "count $db\n{$queryopt}query $db $flags $numres $file\ndone now\n";
 		#debug("Doing simple query for $querysrv:\n$query");
 		$res = request_srv($query);
 	}

@@ -9,7 +9,7 @@
 # <input type="checkbox" name="forcegray"> (optional)
 
 # --------------
-
+include("./error.php");
 include("./iqdb-opt.inc");
 
 include("./iqdb-php.inc");
