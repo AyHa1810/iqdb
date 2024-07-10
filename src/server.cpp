@@ -69,6 +69,8 @@ void install_signal_handlers() {
   sigaction(SIGSEGV, &action, NULL);
 }
 
+
+// listen on HTTP
 void http_server(const std::string hostport, const std::string database_filename) {
   INFO("Starting server...\n");
 
@@ -277,7 +279,7 @@ void show_usage() {
   printf(
     "Usage: iqdb [-d=N] COMMAND [ARGS...]\n"
     "\n"
-    "  iqdb listen [host:]port [dbfile]   Run HTTP server on given host/port.\n"
+    "  iqdb http [host:]port [dbfile]   Run HTTP server on given host/port.\n"
     "  iqdb help                          Show this help.\n"
     "\n"
     "Options:\n"

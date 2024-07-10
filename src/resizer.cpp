@@ -82,4 +82,10 @@ RawImage resize_image_data(const unsigned char *data, size_t len, unsigned int t
   return thu;
 }
 
+/* void save_image(imageId image_ID, RawImage img, std::string path ) {
+  FILE *file = fopen("rect.jpg", "wb");
+  gdImageJpeg(data, file, -1);
+  fclose(file);
+} */
+
 }

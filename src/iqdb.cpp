@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
       argc--;
     }
 
-    if (!strcasecmp(argv[1], "listen")) {
+    if (!strcasecmp(argv[1], "http")) {
       const std::string hostport = argc > 2 ? argv[2] : "localhost:8000";
       const std::string filename = argc > 3 ? argv[3] : "iqdb.db";
 

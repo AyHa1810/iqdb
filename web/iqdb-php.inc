@@ -49,7 +49,7 @@ function parse_response($lines) {
 			case 000: break;
 			case 100: array_push($res["info"], $rest);
 				  break;
-			case 101: list($var,$val) = split("=", $rest, 2);
+			case 101: list($var,$val) = preg_split("=", $rest, 2);
 				  $res["values"][$var] += $val;
 				  break;
 			case 200: array_push($res["results"], "-1 $rest");
@@ -106,7 +106,7 @@ function request_match($file, $querysrv, $options = array()) {
 			$query.=" $db $rflags $numres";
 		}
 		$query = $res."{$queryopt}multi_query$query $file\ndone now\n";
-		#debug("Doing multi query:\n$query");
+		debug("Doing multi query:\n$query");
 		$res = request_srv($query);
 		if ($res["results"]) $res["results"] = array_slice($res["results"], 0, $numres);
 	} else {
