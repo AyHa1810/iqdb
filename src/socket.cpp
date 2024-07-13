@@ -1,8 +1,11 @@
 #include <sys/socket.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <iqdb/imgdb.h>
+#include <iqdb/debug.h>
 
+namespace iqdb {
 // Attach rd/wr FILE to fd and automatically close when going out of scope.
 struct socket_stream {
 	socket_stream(int sock) :
@@ -12,7 +15,7 @@ struct socket_stream {
 
 	  	if (sock == -1 || !rd || !wr) {
 			close();
-			throw imgdb::io_error("Cannot fdopen socket.");
+			throw fatal_error("Cannot fdopen socket.");
 		}
 	}
 	~socket_stream() { close(); }
@@ -30,6 +33,15 @@ struct socket_stream {
 	FILE* wr;
 };
 
+#include <stdarg.h>
+void die(const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vprintf(fmt, args);
+    va_end(args);
+	exit(EXIT_FAILURE);
+}
+
 bool set_socket(int fd, struct sockaddr_in& bindaddr, int force) {
 	if (fd == -1) die("Can't create socket: %s\n", strerror(errno));
 
@@ -38,28 +50,28 @@ bool set_socket(int fd, struct sockaddr_in& bindaddr, int force) {
 	if (bind(fd, (struct sockaddr*) &bindaddr, sizeof(bindaddr)) ||
 	    listen(fd, 64)) {
 		if (force) die("Can't bind/listen: %s\n", strerror(errno));
-		DEBUG(base)("Socket in use, will replace server later.\n");
+		INFO("Socket in use, will replace server later.\n");
 		return false;
 	} else {
-		DEBUG(base)("Listening on port %d.\n", ntohs(bindaddr.sin_port));
+		INFO("Listening on port %d.\n", ntohs(bindaddr.sin_port));
 		return true;
 	}
 }
 
 void rebind(int fd, struct sockaddr_in& bindaddr) {
 	int retry = 0;
-	DEBUG(base)("Binding to %08x:%d... ", ntohl(bindaddr.sin_addr.s_addr), ntohs(bindaddr.sin_port));
+	INFO("Binding to %08x:%d... ", ntohl(bindaddr.sin_addr.s_addr), ntohs(bindaddr.sin_port));
 	while (bind(fd, (struct sockaddr*) &bindaddr, sizeof(bindaddr))) {
 		if (retry++ > 60) die("Could not bind: %s.\n", strerror(errno));
-		DEBUG_CONT(base)(DEBUG_OUT, "Can't bind yet: %s.\n", strerror(errno));
+		WARN("Can't bind yet: %s.\n", strerror(errno));
 		sleep(1);
-		DEBUG(base)("%s", "");
+		INFO("%s", "");
 	}
-	DEBUG_CONT(base)(DEBUG_OUT, "bind ok.\n");
+	INFO("bind ok.\n");
 	if (listen(fd, 64))
 		die("Can't listen: %s.\n", strerror(errno));
 
-	DEBUG(base)("Listening on port %d.\n", ntohs(bindaddr.sin_port));
+	INFO("Listening on port %d.\n", ntohs(bindaddr.sin_port));
 }
 
 void server(const char* hostport, int numfiles, char** files, bool listen2) {
@@ -200,4 +212,6 @@ void server(const char* hostport, int numfiles, char** files, bool listen2) {
 
 		DEBUG(connections)("Connection %s:%d closing.\n", inet_ntoa(client.sin_addr), client.sin_port);
 	}
+}
+
 }
