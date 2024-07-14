@@ -1,7 +1,16 @@
-#include <sys/socket.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <stdarg.h>
+#include <signal.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+
+//#include <iqdb/socket.h>
 #include <iqdb/imgdb.h>
 #include <iqdb/debug.h>
 
@@ -33,7 +42,6 @@ struct socket_stream {
 	FILE* wr;
 };
 
-#include <stdarg.h>
 void die(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -104,7 +112,7 @@ void server(const char* hostport, int numfiles, char** files, bool listen2) {
 				die("Can't resolve host %s: %s\n", files[0] + 2, gai_strerror(ret));
 
 			memcpy(&addr, ai->ai_addr, std::min<size_t>(sizeof(addr), ai->ai_addrlen));
-			DEBUG(connections)("Restricting connections. Allowed from %s\n", inet_ntoa(addr.sin_addr));
+			INFO("Restricting connections. Allowed from %s\n", inet_ntoa(addr.sin_addr));
 			source_addr[addr.sin_addr.s_addr] = true;
 			freeaddrinfo(ai);
 
@@ -144,12 +152,12 @@ void server(const char* hostport, int numfiles, char** files, bool listen2) {
 			die("Can't connect to old server: %s.\n", strerror(errno));
 
 		socket_stream stream(other_fd);
-		DEBUG(base)("Sending quit command.\n");
+		WARN("Sending quit command.\n");
 		fputs("quit now\n", stream.wr); fflush(stream.wr);
 
 		char buf[1024];
 		while (fgets(buf, sizeof(buf), stream.rd))
-			DEBUG(base)(" --> %s", buf);
+			INFO(" --> %s", buf);
 
 		if (listen2) rebind(fd_low, bindaddr_low);
 		rebind(fd_high, bindaddr_high);
@@ -172,22 +180,22 @@ void server(const char* hostport, int numfiles, char** files, bool listen2) {
 
 		int fd = accept(is_high ? fd_high : fd_low, (struct sockaddr*) &client, &len);
 		if (fd == -1) {
-			DEBUG(errors)("accept() failed: %s\n", strerror(errno));
+			ERROR("accept() failed: %s\n", strerror(errno));
 			continue;
 		}
 
 		if (!source_addr.empty() && source_addr.find(client.sin_addr.s_addr) == source_addr.end()) {
-			DEBUG(connections)("REFUSED connection from %s:%d\n", inet_ntoa(client.sin_addr), client.sin_port);
+			ERROR("REFUSED connection from %s:%d\n", inet_ntoa(client.sin_addr), client.sin_port);
 			close(fd);
 			continue;
 		}
 
-		DEBUG(connections)("Accepted %s connection from %s:%d\n", is_high ? "high priority" : "normal", inet_ntoa(client.sin_addr), client.sin_port);
+		INFO("Accepted %s connection from %s:%d\n", is_high ? "high priority" : "normal", inet_ntoa(client.sin_addr), client.sin_port);
 
 		struct timeval tv = { 5, 0 };	// 5 seconds
 		if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) ||
 		    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv))) {
-			DEBUG(errors)("Can't set SO_RCVTIMEO/SO_SNDTIMEO: %s\n", strerror(errno));
+			ERROR("Can't set SO_RCVTIMEO/SO_SNDTIMEO: %s\n", strerror(errno));
 		}
 
 		socket_stream stream(fd);
@@ -210,7 +218,7 @@ void server(const char* hostport, int numfiles, char** files, bool listen2) {
 			throw;
 		}
 
-		DEBUG(connections)("Connection %s:%d closing.\n", inet_ntoa(client.sin_addr), client.sin_port);
+		INFO("Connection %s:%d closing.\n", inet_ntoa(client.sin_addr), client.sin_port);
 	}
 }
 
